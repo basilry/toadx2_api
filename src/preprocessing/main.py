@@ -1,14 +1,18 @@
+import warnings
 import pandas as pd
+from datetime import datetime
+
+warnings.filterwarnings('ignore')
 
 print("=========================================================================")
 print("1. 데이터 불러오기")
 print("월간 평균 매매가/전세가 데이터 선언")
-monthly_sale_avg_df = pd.read_excel('dataset/monthly_apartment_sale_cost_avg.xlsx')
-monthly_rent_avg_df = pd.read_excel('dataset/monthly_apartment_rent_cost_avg.xlsx')
+monthly_sale_avg_df = pd.read_excel('data/raw/monthly_apartment_sale_cost_avg.xlsx')
+monthly_rent_avg_df = pd.read_excel('data/raw/monthly_apartment_rent_cost_avg.xlsx')
 
 print("주간 매매 지수/전세 지수 데이터 선언")
-weekly_sale_index_df = pd.read_excel('dataset/weekly_apartment_sale_index_short.xlsx')
-weekly_rent_index_df = pd.read_excel('dataset/weekly_apartment_rent_index_short.xlsx')
+weekly_sale_index_df = pd.read_excel('data/raw/weekly_apartment_sale_index_short.xlsx')
+weekly_rent_index_df = pd.read_excel('data/raw/weekly_apartment_rent_index_short.xlsx')
 
 print("=========================================================================")
 print("2. 데이터 전처리")
@@ -129,7 +133,9 @@ sheet_order = ['전국', '서울', '강북14개구', '종로구', '중구', '용
                '송파구', '강동구', '수도권']
 
 print("엑셀로 저장")
-with pd.ExcelWriter('result/20240926_result.xlsx', engine='xlsxwriter') as writer:
+now = datetime.now().strftime('%Y%m%d%H%M')
+
+with pd.ExcelWriter(f'data/processed/{now}_result.xlsx', engine='xlsxwriter') as writer:
     for region in sheet_order:
         region_df = result_df[result_df['지역명'] == region].sort_values('날짜').reset_index(drop=True)
         if not region_df.empty:
