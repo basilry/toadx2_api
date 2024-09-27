@@ -16,18 +16,19 @@ logging.getLogger("urllib3").setLevel(logging.DEBUG)
 koreaLandUrl = os.getenv('KOREA_LAND_API_URL')
 ministryUrl = os.getenv('MINISTRY_OF_LAND_API_URL')
 encodingKey = os.getenv('ENCODING_KEY')
+decodingKey = os.getenv('DECODING_KEY')
 
 
 # 국토교통부 아파트 실거래가 Open API를 활용한 부동산 데이터 지역별/날짜별 조회
 @router.get("/ministry/{LAWD_CD}/{DEAL_YMD}")
-def read_real_estate_data_from_ministry(LAWD_CD: str, DEAL_YMD: str):
+def get_sale_cost_from_ministry(LAWD_CD: str, DEAL_YMD: str):
     params = {
         'LAWD_CD': LAWD_CD,
         'DEAL_YMD': DEAL_YMD,
     }
+    url = ministryUrl + '/getRTMSDataSvcAptTrade' + f'?serviceKey={encodingKey}'
 
-    response = requests.get(ministryUrl + '/getRTMSDataSvcAptTrade' + f'?serviceKey={encodingKey}',
-                            params=params)
+    response = requests.get(url, params=params)
 
     if response.status_code == 200:
         data_dict = xmltodict.parse(response.content)
@@ -38,20 +39,77 @@ def read_real_estate_data_from_ministry(LAWD_CD: str, DEAL_YMD: str):
         return {"error": "Failed to fetch data"}
 
 
-# 한국부동산원 월별 아파트 평균매매가격 동향 Open API를 활용한 부동산 데이터 지역별/날짜별 조회
-@router.get("/korea_land")
-def read_real_estate_data_from_korea_land(region: str, date: str):
+# 한국부동산원 월별/지역별 아파트 매매가격지수 동향 조회
+@router.get("/korea-land/sale-index/{page}")
+def get_sale_index_from_korea_land(page: int):
     params = {
-        'page': 1,
+        'page': page,
         'perPage': 10,
     }
+    url = koreaLandUrl + '/15069826/v1/uddi:754c056e-8dea-4201-8a61-88e56da67e83' + f'?serviceKey={encodingKey}'
 
-    response = requests.get(koreaLandUrl + '//15069826/v1/uddi:754c056e-8dea-4201-8a61-88e56da67e83', params=params)
+    response = requests.get(url, params=params)
 
     if response.status_code == 200:
-        data_dict = xmltodict.parse(response.content)
+        json_data = response.json()
 
-        items = data_dict['response']['body']['items']['item']
-        return items
+        return json_data
+    else:
+        return {"error": "Failed to fetch data"}
+
+
+# 한국부동산원 월별 아파트 평균 매매가격 조회
+@router.get("/korea-land/sale-cost/{page}")
+def get_sale_avg_cost_from_korea_land(page: int):
+    params = {
+        'page': page,
+        'perPage': 10,
+    }
+    url = koreaLandUrl + '/15069826/v1/uddi:c921d88a-6deb-4904-a658-e1fdb5437c92' + f'?serviceKey={encodingKey}'
+
+    response = requests.get(url, params=params)
+
+    if response.status_code == 200:
+        json_data = response.json()
+
+        return json_data
+    else:
+        return {"error": "Failed to fetch data"}
+
+
+# 한국부동산원 월별/지역별 아파트 전세가격지수 동향 조회
+@router.get("/korea-land/rent-index/{page}")
+def get_rent_index_from_korea_land(page: int):
+    params = {
+        'page': page,
+        'perPage': 10,
+    }
+    url = koreaLandUrl + '/15044018/v1/uddi:dd77d0b6-6927-46f4-884c-b5a0c1751b65' + f'?serviceKey={encodingKey}'
+
+    response = requests.get(url, params=params)
+
+    if response.status_code == 200:
+        json_data = response.json()
+
+        return json_data
+    else:
+        return {"error": "Failed to fetch data"}
+
+
+# 한국부동산원 월별 아파트 평균 전세가격 조회
+@router.get("/korea-land/rent-cost/{page}")
+def get_rent_avg_cost_from_korea_land(page: int):
+    params = {
+        'page': page,
+        'perPage': 10,
+    }
+    url = koreaLandUrl + '/15067573/v1/uddi:d2dae93c-51eb-4873-983e-a71fdf4835f9' + f'?serviceKey={encodingKey}'
+
+    response = requests.get(url, params=params)
+
+    if response.status_code == 200:
+        json_data = response.json()
+
+        return json_data
     else:
         return {"error": "Failed to fetch data"}
