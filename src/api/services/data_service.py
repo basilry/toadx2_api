@@ -1,3 +1,8 @@
-def fetch_real_estate_data():
-    # 데이터베이스에서 부동산 데이터를 가져오는 로직
-    pass
+from sqlalchemy.orm import Session
+
+from src.api.models.real_estate_model import Region
+
+
+# kb 데이터베이스에서 모든 지역을 가져오는 함수
+def get_all_kb_regions(db: Session):
+    return db.query(Region).all()

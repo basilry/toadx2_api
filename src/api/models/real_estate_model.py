@@ -1,45 +1,33 @@
-from sqlalchemy import Column, Integer, Float, String, Date
-from sqlalchemy.ext.declarative import declarative_base
-from pydantic import BaseModel
-from typing import Optional
-from datetime import date
+from sqlalchemy import Column, Integer, String, Float, Date
 
-# SQLAlchemy Base 선언
-Base = declarative_base()
+from src.config.database import Base
 
 
-# 1. SQLAlchemy 모델 정의 (데이터베이스 테이블)
-class RealEstateData(Base):
-    __tablename__ = 'real_estate_data'  # 테이블 이름
+class Region(Base):
+    __tablename__ = "regions"
 
-    id = Column(Integer, primary_key=True, index=True)  # Primary Key
-    region = Column(String, index=True)  # 지역명
-    sale_price = Column(Float, nullable=False)  # 매매가
-    rent_price = Column(Float, nullable=True)  # 전세가 (nullable)
-    date = Column(Date, nullable=False)  # 거래 날짜
-
-    def __repr__(self):
-        return f"<RealEstateData(region={self.region}, sale_price={self.sale_price}, date={self.date})>"
+    id = Column(Integer, primary_key=True, index=True)
+    region_name = Column(String, unique=True, index=True)  # 지역명 (서울, 강남 등)
 
 
-# 2. Pydantic 모델 정의 (FastAPI 요청 및 응답 처리)
+class PropertyPriceData(Base):
+    __tablename__ = "property_price_data"
 
-# 공통 Pydantic 모델
-class RealEstateBase(BaseModel):
-    region: str  # 지역명
-    sale_price: float  # 매매가
-    rent_price: Optional[float] = None  # 전세가 (Optional)
-    date: date  # 거래 날짜
-
-    class Config:
-        orm_mode = True  # ORM 객체를 자동으로 Pydantic 모델로 변환할 수 있도록 설정
-
-
-# 데이터 생성용 Pydantic 모델 (API 요청 시)
-class RealEstateCreate(RealEstateBase):
-    pass  # 별도의 추가 필드는 없고, 기본 데이터 구조를 사용
+    id = Column(Integer, primary_key=True, index=True)
+    region_id = Column(Integer)  # 지역 ID, FK로 설정 가능 (여기선 간단하게 설정)
+    date = Column(Date, index=True)  # 주간 또는 월간 날짜
+    price_type = Column(String, index=True)  # "매매" 또는 "전세"
+    time_span = Column(String, index=True)  # "주간" 또는 "월간"
+    index_value = Column(Float, nullable=True)  # 가격 지수
+    avg_price = Column(Float, nullable=True)  # 평균 가격
 
 
-# 데이터 응답용 Pydantic 모델 (API 응답 시)
-class RealEstateResponse(RealEstateBase):
-    id: int  # 응답 시 ID를 포함
+class Prediction(Base):
+    __tablename__ = "predictions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    region_id = Column(Integer)
+    date = Column(Date, index=True)
+    price_type = Column(String)  # "매매" 또는 "전세"
+    time_span = Column(String)  # "주간" 또는 "월간"
+    predicted_value = Column(Float)  # 예측된 가격 지수 또는 평균 가격
