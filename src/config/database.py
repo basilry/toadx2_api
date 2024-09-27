@@ -7,14 +7,9 @@ from sqlalchemy.orm import sessionmaker
 
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+logging.getLogger('sqlalchemy.dialects.postgresql').setLevel(logging.INFO)
 
-database_host = os.getenv('DATABASE_HOST')
-database_port = os.getenv('DATABASE_PORT')
-database_name = os.getenv('DATABASE_NAME')
-postgres_user = os.getenv('POSTGRESQL_USER')
-postgres_password = os.getenv('POSTGRESQL_PASSWORD')
-
-DATABASE_URL = f'postgresql://{postgres_user}:{postgres_password}@{database_host}:{database_port}/{database_name}'
+DATABASE_URL = 'postgresql://postgres:1234@localhost:5432/toadx2'
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
