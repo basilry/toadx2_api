@@ -12,10 +12,15 @@ function run() {
     uvicorn src.api.main:app --reload
 }
 
-# 프로젝트 빌드
-function build() {
-    docker build -t my_fastapi_app .
+# 프로젝트 종료
+function stop() {
+    exit 0
 }
+
+# 프로젝트 빌드
+#function build() {
+#    docker build -t my_fastapi_app .
+#}
 
 # 테스트 실행
 function test() {
@@ -36,6 +41,11 @@ function update_db_schema() {
 # kb 데이터 크롤링 및 db 데이터 업데이트
 function update_db_data() {
     python -m src.preprocessing.data_pipeline
+}
+
+# 데이터베이스의 kb 데이터를 기반으로 예측
+function predict() {
+    python -m src.prediction.predict
 }
 
 # 스크립트의 첫 번째 인자를 명령으로 처리

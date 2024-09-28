@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 
 from src.api.routes import real_estate, healthcheck
-from src.config.database import Base, engine
-from src.api.models import kb_real_estate_data_hub
+from src.database.database import Base, engine
 
 app = FastAPI()
 
