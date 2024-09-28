@@ -4,14 +4,14 @@ from src.config.database import Base
 
 
 class Region(Base):
-    __tablename__ = "regions"
+    __tablename__ = "kb_region"
 
     id = Column(Integer, primary_key=True, index=True)
     region_name = Column(String, unique=True, index=True)  # 지역명 (서울, 강남 등)
 
 
 class PropertyPriceData(Base):
-    __tablename__ = "property_price_data"
+    __tablename__ = "kb_property_price_data"
 
     id = Column(Integer, primary_key=True, index=True)
     region_id = Column(Integer)  # 지역 ID, FK로 설정 가능 (여기선 간단하게 설정)
@@ -23,7 +23,7 @@ class PropertyPriceData(Base):
 
 
 class Prediction(Base):
-    __tablename__ = "predictions"
+    __tablename__ = "kb_prediction"
 
     id = Column(Integer, primary_key=True, index=True)
     region_id = Column(Integer)

@@ -2,16 +2,16 @@ from fastapi import FastAPI
 
 from src.api.routes import real_estate, healthcheck
 from src.config.database import Base, engine
-from src.api.models import real_estate_model
+from src.api.models import kb_real_estate_data_hub
 
 app = FastAPI()
 
 
 @app.on_event("startup")
 def on_startup():
-    print("========테이블 생성 시작========")
+    print("========Table Creating Start========")
     Base.metadata.create_all(bind=engine)  # 테이블 생성 명령
-    print("========테이블 생성 완료========")
+    print("========Table Creating Donee========")
 
 
 @app.get("/")

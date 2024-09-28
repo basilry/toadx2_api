@@ -6,7 +6,7 @@ import xmltodict
 from dotenv import load_dotenv
 from fastapi import APIRouter
 
-load_dotenv()
+load_dotenv(dotenv_path='../../.env')
 router = APIRouter()
 
 logging.basicConfig(level=logging.DEBUG)
@@ -28,7 +28,11 @@ def get_sale_cost_from_ministry(LAWD_CD: str, DEAL_YMD: str):
     }
     url = ministryUrl + '/getRTMSDataSvcAptTrade' + f'?serviceKey={encodingKey}'
 
+    print(url)
+
     response = requests.get(url, params=params)
+
+    print(response.text)
 
     if response.status_code == 200:
         data_dict = xmltodict.parse(response.content)
@@ -103,7 +107,15 @@ def get_rent_avg_cost_from_korea_land(page: int):
         'page': page,
         'perPage': 10,
     }
-    url = koreaLandUrl + '/15067573/v1/uddi:d2dae93c-51eb-4873-983e-a71fdf4835f9' + f'?serviceKey={encodingKey}'
+
+    print(koreaLandUrl)
+    print(f"koreaLandUrl type: {type(koreaLandUrl)}")
+    print(f"koreaLandUrl value: {koreaLandUrl}")
+    print("====================================")
+    # url = f'{koreaLandUrl}/15067573/v1/uddi:d2dae93c-51eb-4873-983e-a71fdf4835f9?serviceKey={encodingKey}'
+    # print(url)
+    url = f'{koreaLandUrl}/15067573/v1/uddi:d2dae93c-51eb-4873-983e-a71fdf4835f9?serviceKey={encodingKey}&page={page}&perPage=10'
+    print(url)
 
     response = requests.get(url, params=params)
 
