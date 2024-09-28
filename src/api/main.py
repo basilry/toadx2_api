@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from src.api.routes import real_estate, healthcheck
+from src.api.routes import real_estate, healthcheck, gemma
 from src.database.database import Base, engine
 
 app = FastAPI()
@@ -20,3 +20,4 @@ async def root():
 
 app.include_router(real_estate.router, prefix="/real-estate")
 app.include_router(healthcheck.router, prefix="/health-check")
+app.include_router(gemma.router, prefix="/gemma2")
