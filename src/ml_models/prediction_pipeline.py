@@ -98,7 +98,7 @@ def predict_future_property_prices(session: Session, price_type: str):
             continue
 
         # 2020-01-01, 2021-01-01에서 부동산 가격이 급격히 변화하는 지점을 changepoints로 설정
-        changepoints = ['2020-01-01', '2021-01-01', '2019-06-01']
+        changepoints = ['2019-01-01', '2020-01-01', '2021-01-01']
 
         # Prophet 모델 학습
         region_data['cap'] = region_data['y'].max() * 1.5
