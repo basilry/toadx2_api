@@ -7,8 +7,9 @@ from src.database.database import Base
 class Region(Base):
     __tablename__ = "kb_region"
 
-    id = Column(Integer, primary_key=True, index=True)
-    region_name = Column(String, unique=True, index=True)  # 지역명 (서울, 강남 등)
+    region_code = Column(String, primary_key=True, index=True)  # 지역 코드 (전국: 0000000000 등)
+    region_name_kor = Column(String, unique=True, index=True)  # 지역명 (서울, 강남 등)
+    region_name_eng = Column(String, unique=True, index=True)  # 지역명 (Seoul, Gangnam etc.)
 
     # 연관된 부동산 데이터
     property_prices = relationship("PropertyPriceData", back_populates="region")
@@ -20,7 +21,7 @@ class PropertyPriceData(Base):
     __tablename__ = "kb_property_price_data"
 
     id = Column(Integer, primary_key=True, index=True)
-    region_id = Column(Integer, ForeignKey('kb_region.id'))
+    region_code = Column(String, ForeignKey('kb_region.region_code'))
     region = relationship("Region", back_populates="property_prices")
 
     date = Column(Date, index=True)  # 주간 또는 월간 날짜
@@ -30,7 +31,7 @@ class PropertyPriceData(Base):
     is_interpolated = Column(Boolean, default=False)  # 보간 여부 (True/False)
 
     __table_args__ = (
-        Index('ix_region_date_type_timespan', 'region_id', 'date', 'price_type'),
+        Index('ix_region_date_type_timespan', 'region_code', 'date', 'price_type'),
     )
 
 
@@ -39,7 +40,7 @@ class Prediction(Base):
     __tablename__ = "kb_prediction"
 
     id = Column(Integer, primary_key=True, index=True)
-    region_id = Column(Integer, ForeignKey('kb_region.id'))
+    region_code = Column(String, ForeignKey('kb_region.region_code'))
     region = relationship("Region", back_populates="predictions")
 
     date = Column(Date, index=True)  # 예측 날짜
@@ -50,4 +51,4 @@ class Prediction(Base):
     predicted_price = Column(Float, nullable=True)  # 예측된 평균 가격 (optional)
 
     # 예측 정확도
-    prediction_accuracy = Column(Float, nullable=True)  # 예측 정확도 (선택 사항)
+    prediction_accuracies = Column(Float, nullable=True)  # 예측 정확도 (선택 사항)

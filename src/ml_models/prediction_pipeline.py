@@ -10,36 +10,34 @@ from src.database.database import SessionLocal
 
 
 # 기준 시점의 가격을 DB에서 가져오는 함수 (2022-01-10 기준)
-def get_basis_price(session: Session, region_id: int, price_type: str):
+def get_basis_price(session: Session, region_code: str, price_type: str):
     """
     기준 시점(2022-01-10)의 지역별 매매/전세 가격을 DB에서 가져오는 함수.
-    region_id: 지역 ID
+    region_code: 지역 ID
     price_type: 매매 또는 전세
     """
     BASIS_DATE_WEEKLY = datetime(2022, 1, 10)  # 기준 날짜: 2022-01-10
 
     # 기준 시점의 매매/전세 가격을 가져옴
     basis_data = session.query(PropertyPriceData).filter_by(
-        region_id=region_id,
+        region_code=region_code,
         price_type=price_type,
         date=BASIS_DATE_WEEKLY
     ).first()
 
     # 기준 시점 데이터가 존재하지 않으면 예외 처리
     if not basis_data or not basis_data.avg_price:
-        raise ValueError(f"기준 시점 데이터가 없습니다: 지역 {region_id}, 가격 유형 {price_type}, 날짜 {BASIS_DATE_WEEKLY}")
+        raise ValueError(f"기준 시점 데이터가 없습니다: 지역 {region_code}, 가격 유형 {price_type}, 날짜 {BASIS_DATE_WEEKLY}")
 
     return basis_data.avg_price
 
 
 # 예측 결과를 저장하는 함수
-def store_prediction(session: Session, region_id: int, date: datetime, price_type: str, predicted_index: float = None):
-    # region_id가 numpy.int64일 경우 Python의 int로 변환
-    region_id = int(region_id)
-
+def store_prediction(session: Session, region_code: str, date: datetime, price_type: str,
+                     predicted_index: float = None):
     # 기준 시점의 가격을 DB에서 가져옴 (2022-01-10)
     try:
-        basis_price = get_basis_price(session, region_id, price_type)
+        basis_price = get_basis_price(session, region_code, price_type)
     except ValueError as e:
         print(f"기준 시점 가격을 가져오지 못했습니다: {e}")
         return
@@ -51,7 +49,7 @@ def store_prediction(session: Session, region_id: int, date: datetime, price_typ
 
     # 기존 예측 데이터 확인
     existing_prediction = session.query(Prediction).filter_by(
-        region_id=region_id,
+        region_code=region_code,
         date=date,
         price_type=price_type
     ).first()
@@ -59,7 +57,7 @@ def store_prediction(session: Session, region_id: int, date: datetime, price_typ
     if not existing_prediction:
         # 새 예측 데이터 추가
         prediction = Prediction(
-            region_id=region_id,
+            region_code=region_code,
             date=date,
             price_type=price_type,
             predicted_index=predicted_index,  # 예측된 가격 지수
@@ -67,9 +65,9 @@ def store_prediction(session: Session, region_id: int, date: datetime, price_typ
         )
         session.add(prediction)
         session.commit()
-        print(f"Prediction inserted for region {region_id} on {date}.")
+        print(f"Prediction inserted for region {region_code} on {date}.")
     else:
-        print(f"Prediction already exists for region {region_id} on {date} - Skipping.")
+        print(f"Prediction already exists for region {region_code} on {date} - Skipping.")
 
 
 # Prophet 모델을 사용하여 미래 데이터 예측
@@ -82,7 +80,7 @@ def predict_future_property_prices(session: Session, price_type: str):
         return
 
     # 데이터를 Pandas DataFrame으로 변환
-    data = [{'ds': pd.to_datetime(item.date), 'y': item.index_value, 'region_id': item.region_id} for item in
+    data = [{'ds': pd.to_datetime(item.date), 'y': item.index_value, 'region_code': item.region_code} for item in
             property_data]
     df = pd.DataFrame(data)
 
@@ -90,9 +88,9 @@ def predict_future_property_prices(session: Session, price_type: str):
     today = datetime.today().date()
 
     # 지역별로 데이터를 그룹화하고 예측 수행
-    regions = df['region_id'].unique()
-    for region_id in regions:
-        region_data = df[df['region_id'] == region_id]
+    regions = df['region_code'].unique()
+    for region_code in regions:
+        region_data = df[df['region_code'] == region_code]
 
         if region_data.empty:
             continue
@@ -113,6 +111,9 @@ def predict_future_property_prices(session: Session, price_type: str):
         # 예측 값을 스무딩 처리 (Moving Average 적용)
         forecast['yhat_smooth'] = forecast['yhat'].rolling(window=3, min_periods=1).mean()
 
+        # 예측 데이터를 날짜를 기준으로 정렬
+        forecast = forecast.sort_values(by='ds')
+
         # 미래 1년치 데이터를 저장
         for _, row in forecast.iterrows():
             prediction_date = row['ds'].date()
@@ -122,7 +123,7 @@ def predict_future_property_prices(session: Session, price_type: str):
                 predicted_value = row['yhat_smooth']  # 스무딩된 값을 사용
 
                 # 예측값 저장 (미래 데이터만 저장)
-                store_prediction(session, region_id, prediction_date, price_type, predicted_index=predicted_value)
+                store_prediction(session, region_code, prediction_date, price_type, predicted_index=predicted_value)
 
     print(f"Future predictions for {price_type} have been successfully generated and stored.")
 
