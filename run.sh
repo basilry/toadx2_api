@@ -5,7 +5,6 @@ if [ -f .env ]; then
     export $(cat .env | xargs)
 fi
 
-export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
 
 # FastAPI 서버 실행
 function run() {

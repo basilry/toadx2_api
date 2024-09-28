@@ -4,6 +4,7 @@ from alembic import context
 from src.database.database import Base
 import os
 from dotenv import load_dotenv
+from src.database.models import kb_real_estate_data_hub
 
 # .env 파일 로드
 load_dotenv()

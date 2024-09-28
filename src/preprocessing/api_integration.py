@@ -142,14 +142,13 @@ def store_region(session: Session, region_name: str):
 
 
 # 부동산 데이터를 저장하는 함수 (중복 데이터 확인 후 삽입)
-def store_property_data(session: Session, region_id: int, date: datetime, price_type: str, time_span: str,
+def store_property_data(session: Session, region_id: int, date: datetime, price_type: str,
                         index_value: float, avg_price: float = None, is_interpolated: bool = False):
     # 기존 데이터가 있는지 확인
     existing_data = session.query(PropertyPriceData).filter_by(
         region_id=region_id,
         date=date,
         price_type=price_type,
-        time_span=time_span
     ).first()
 
     # 중복 데이터가 없을 경우 데이터 삽입
@@ -158,14 +157,13 @@ def store_property_data(session: Session, region_id: int, date: datetime, price_
             region_id=region_id,
             date=date,
             price_type=price_type,
-            time_span=time_span,
             index_value=index_value,
             avg_price=avg_price,
             is_interpolated=is_interpolated  # 보간 여부 추가
         )
         session.add(property_data)
         session.commit()
-        print(f"Inserted new data for {region_id}, {date} - {price_type}, {time_span}")
+        print(f"Inserted new data for {region_id}, {date} - {price_type}")
     else:
         print(f"Data already exists for {region_id}, {date} - Skipping")
 
@@ -226,7 +224,6 @@ def process_and_insert_data_with_interpolation(session: Session):
             region_id,
             row['날짜'],
             '매매',
-            '주간',
             row['가격_매매'],
             row['avg_price_매매'],  # 보간된 평균 매매가
             is_interpolated=row['is_interpolated_매매']  # 보간 여부를 반영
@@ -238,7 +235,6 @@ def process_and_insert_data_with_interpolation(session: Session):
             region_id,
             row['날짜'],
             '전세',
-            '주간',
             row['가격_전세'],
             row['avg_price_전세'],  # 보간된 평균 전세가
             is_interpolated=row['is_interpolated_전세']  # 보간 여부를 반영
