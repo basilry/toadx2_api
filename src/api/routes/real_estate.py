@@ -6,7 +6,7 @@ import xmltodict
 from dotenv import load_dotenv
 from fastapi import APIRouter
 
-load_dotenv(dotenv_path='../../.env')
+load_dotenv()
 router = APIRouter()
 
 logging.basicConfig(level=logging.DEBUG)
@@ -20,11 +20,11 @@ decodingKey = os.getenv('DECODING_KEY')
 
 
 # 국토교통부 아파트 실거래가 Open API를 활용한 부동산 데이터 지역별/날짜별 조회
-@router.get("/ministry/{LAWD_CD}/{DEAL_YMD}")
-def get_sale_cost_from_ministry(LAWD_CD: str, DEAL_YMD: str):
+@router.get("/ministry/{lawd_cd}/{deal_ymd}")
+def get_sale_cost_from_ministry(lawd_cd: str, deal_ymd: str):
     params = {
-        'LAWD_CD': LAWD_CD,
-        'DEAL_YMD': DEAL_YMD,
+        'LAWD_CD': lawd_cd,
+        'DEAL_YMD': deal_ymd,
     }
     url = ministryUrl + '/getRTMSDataSvcAptTrade' + f'?serviceKey={encodingKey}'
 
@@ -108,14 +108,7 @@ def get_rent_avg_cost_from_korea_land(page: int):
         'perPage': 10,
     }
 
-    print(koreaLandUrl)
-    print(f"koreaLandUrl type: {type(koreaLandUrl)}")
-    print(f"koreaLandUrl value: {koreaLandUrl}")
-    print("====================================")
-    # url = f'{koreaLandUrl}/15067573/v1/uddi:d2dae93c-51eb-4873-983e-a71fdf4835f9?serviceKey={encodingKey}'
-    # print(url)
-    url = f'{koreaLandUrl}/15067573/v1/uddi:d2dae93c-51eb-4873-983e-a71fdf4835f9?serviceKey={encodingKey}&page={page}&perPage=10'
-    print(url)
+    url = f'{koreaLandUrl}/15067573/v1/uddi:d2dae93c-51eb-4873-983e-a71fdf4835f9?serviceKey={encodingKey}'
 
     response = requests.get(url, params=params)
 

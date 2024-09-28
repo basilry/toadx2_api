@@ -5,6 +5,8 @@ if [ -f .env ]; then
     export $(cat .env | xargs)
 fi
 
+export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
+
 # FastAPI 서버 실행
 function run() {
     uvicorn src.api.main:app --reload
@@ -26,9 +28,14 @@ function install() {
 }
 
 # Alembic 리비전 생성 (자동 생성) 및 데이터베이스 업데이트
-function updatedb() {
+function update_db_schema() {
     alembic revision --autogenerate -m "Auto-generated migration"
     alembic upgrade head
+}
+
+# kb 데이터 크롤링 및 db 데이터 업데이트
+function update_db_data() {
+    python -m src.preprocessing.data_pipeline
 }
 
 # 스크립트의 첫 번째 인자를 명령으로 처리
