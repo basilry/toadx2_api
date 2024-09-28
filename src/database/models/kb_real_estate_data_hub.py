@@ -42,7 +42,12 @@ class Prediction(Base):
     region_id = Column(Integer, ForeignKey('kb_region.id'))
     region = relationship("Region", back_populates="predictions")
 
-    date = Column(Date, index=True)
+    date = Column(Date, index=True)  # 예측 날짜
     price_type = Column(String)  # "매매" 또는 "전세"
-    predicted_value = Column(Float)  # 예측된 가격 지수 또는 평균 가격
+
+    # 예측된 값
+    predicted_index = Column(Float, nullable=True)  # 예측된 가격 지수 (optional)
+    predicted_price = Column(Float, nullable=True)  # 예측된 평균 가격 (optional)
+
+    # 예측 정확도
     prediction_accuracy = Column(Float, nullable=True)  # 예측 정확도 (선택 사항)
