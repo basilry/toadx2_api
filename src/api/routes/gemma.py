@@ -4,6 +4,7 @@ from src.ml_models.gemma2_model import generate_response
 router = APIRouter()
 
 
+# TODO: 이쪽에 파인튜닝된 모델 불러와서 대화 실행
 # GEMMA2 모델을 사용한 텍스트 예측 API
 @router.post("/predict")
 async def gemma2_predict(user_message: str):
