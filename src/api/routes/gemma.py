@@ -1,7 +1,7 @@
 import os
 import torch
 from pydantic import BaseModel
-from transformers import AutoTokenizer, AutoModelForCausalLM, Trainer, TrainingArguments
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from fastapi import APIRouter, HTTPException
 from dotenv import load_dotenv
 
@@ -10,15 +10,20 @@ huggingfaceToken = os.getenv('HUGGINGFACE_TOKEN')
 
 router = APIRouter()
 
-model_name = "basilry/gemma2-2-2b-it-fine-tuned-korean-model"
-tokenizer = AutoTokenizer.from_pretrained(model_name, use_auth_token=huggingfaceToken)
+base_path = os.path.dirname(os.path.abspath(__file__))
+print(base_path)
+
+
+model_dir = "gemma2-2-2b-it-fine-tuned-korean-model"
+model_path = os.path.join(base_path, model_dir)
+
+# 모델 경로 설정
 model = AutoModelForCausalLM.from_pretrained(
-    model_name,
-    attn_implementation='eager',
-    torch_dtype=torch.float16,  # 혼합 정밀도 사용
-    device_map='auto',
-    use_auth_token=huggingfaceToken
+    model_path,
+    torch_dtype=torch.float16,
+    device_map="auto"
 )
+
 
 model.eval()
 
