@@ -44,7 +44,7 @@ function update_db_data() {
 
 # 데이터베이스의 kb 데이터를 기반으로 예측
 function predict() {
-    python -m src.ml_models.prediction_pipeline
+    python -m src.ml_models.prophet.prediction_pipeline
 }
 
 # 스크립트의 첫 번째 인자를 명령으로 처리
