@@ -1,4 +1,5 @@
 .env
 *.env.*
+.idea
 
 src/ml_models/gemma2-2-2b-it-fine-tuned-korean-model/*
