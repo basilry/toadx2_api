@@ -67,4 +67,5 @@ async def chat(request: ChatRequest):
     # # 응답에서 'AI:' 부분 추출
     # response = response.split("AI:")[-1].strip()
 
+
     return {"response": response}
