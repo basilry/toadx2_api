@@ -2,7 +2,7 @@ import os
 from huggingface_hub import login
 from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM, Trainer, TrainingArguments, DataCollatorForLanguageModeling, DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer
-
+# google colab environment
 os.environ['HUGGINGFACE_TOKEN'] = "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"
 login(os.environ['HUGGINGFACE_TOKEN'])
 

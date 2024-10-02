@@ -2,9 +2,20 @@ import pandas as pd
 from transformers import AutoTokenizer, AutoModelForCausalLM, Trainer, TrainingArguments
 from datasets import Dataset
 import torch
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+huggingfaceToken = os.getenv('HUGGINGFACE_TOKEN')
+
+#/Users/basilry/Projects/0092_toadx2_api/toadx2_api/src/ml_models
+base_path = os.path.dirname(os.path.abspath(__file__))
+print(base_path)
+
+
 
 # 1. Load Korean gemma2 model and Tokenizer Load
-model_name = "./fine-tuned-model"  # 모델 경로 설정
+model_name = os.path.join(base_path, "gemma2-2-2b-it-fine-tuned-korean-model")
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(model_name)
 
