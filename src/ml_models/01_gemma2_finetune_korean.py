@@ -3,7 +3,7 @@ from huggingface_hub import login
 from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM, Trainer, TrainingArguments, DataCollatorForLanguageModeling, DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer
 # google colab environment
-os.environ['HUGGINGFACE_TOKEN'] = "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"
+os.environ['HUGGINGFACE_TOKEN'] = "your_token"
 login(os.environ['HUGGINGFACE_TOKEN'])
 
 model_name = "google/gemma-2-2b-it"
