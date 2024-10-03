@@ -1,59 +1,71 @@
 from sqlalchemy.orm import Session
-from datetime import datetime
-from src.database.models.kb_real_estate_data_hub import PropertyPriceData, Region, Prediction
+from src.database.models.kb_real_estate_data_hub import PropertyPriceData, Prediction, Region
+import pandas as pd
 
-# 데이터베이스 세션 가져오기
-# `session`은 SQLAlchemy 세션을 의미하며, 데이터베이스와 상호작용을 합니다.
 
+# 영문 price_type을 한글로 변환하는 함수
+def convert_price_type_to_korean(price_type):
+    if price_type == 'rent':
+        return '전세'
+    elif price_type == 'sale':
+        return '매매'
+    return price_type  # 변환이 필요 없는 경우 그대로 반환
+
+
+# 가격을 억 단위와 만 단위로 변환하는 함수
+def format_price_in_krw(price):
+    price_rounded = round(price)  # 소수점 반올림
+    # 억 단위 계산
+    billion_part = price_rounded // 10000
+    # 만 단위 계산
+    ten_thousand_part = price_rounded % 10000
+    if billion_part > 0:
+        return f"{billion_part}억 {ten_thousand_part:,}만원"
+    else:
+        return f"{ten_thousand_part:,}만원"
+
+
+# 질문-답변 쌍을 생성하는 함수 (request -> input, response -> bot_output)
+def generate_qa_pairs(row, is_prediction=False):
+    region = row.region.region_name_kor
+    price_type = convert_price_type_to_korean(row.price_type)  # price_type 변환
+    price = row.predicted_price if is_prediction else row.avg_price
+    date = row.date.strftime('%Y년 %m월 %d일')  # date 포맷 변환
+
+    # 가격을 억 단위와 만 단위로 변환
+    price_formatted = format_price_in_krw(price) if price is not None else "정보 없음"
+
+    if is_prediction:
+        input_text = f"{region}의 {date} 기준 {price_type} 예측 가격은 얼마인가요?"
+        bot_output = f"{region}의 {date} 기준 {price_type} 예측 가격은 {price_formatted}입니다~두껍!"
+    else:
+        input_text = f"{region}의 {date} 기준 {price_type} 가격은 얼마인가요?"
+        bot_output = f"{region}의 {date} 기준 {price_type} 가격은 {price_formatted}입니다~두껍!"
+
+    return input_text, bot_output
+
+
+# 데이터베이스에서 질문-답변 쌍 생성 함수
 def generate_qa_from_db(session: Session):
-    # 질문-답변 쌍을 저장할 리스트
     qa_pairs = []
 
-    # 1. 지역별 부동산 가격 데이터를 조회
+    # 과거 부동산 가격 데이터 가져오기
     price_data = session.query(PropertyPriceData).join(Region).all()
-
-    print(price_data)
-
-    # 2. 가격 데이터를 바탕으로 질문-답변 생성
     for data in price_data:
-        region_name = data.region.region_name_kor  # 지역명
-        price_type = data.price_type  # 매매 또는 전세
-        avg_price = data.avg_price  # 평균 가격
-        date = data.date  # 날짜
+        if data.avg_price is not None:
+            qa_pairs.append(generate_qa_pairs(data, is_prediction=False))
 
-        # 질문과 답변 생성
-        question = f"{region_name}의 {date.strftime('%Y-%m-%d')} 기준 {price_type} 가격은 얼마인가요?"
-        answer = f"{region_name}의 {date.strftime('%Y-%m-%d')} 기준 {price_type} 가격은 {avg_price}만원입니다~두껍!"
-
-        # 리스트에 추가
-        qa_pairs.append((question, answer))
-
-    # 3. 예측 데이터를 바탕으로 추가 질문-답변 생성
+    # 예측 부동산 데이터 가져오기
     prediction_data = session.query(Prediction).join(Region).all()
-
     for data in prediction_data:
-        region_name = data.region.region_name_kor  # 지역명
-        price_type = data.price_type  # 매매 또는 전세
-        predicted_price = data.predicted_price  # 예측된 가격
-        date = data.date  # 예측 날짜
-
-        # 예측 질문과 답변 생성
-        question = f"{region_name}의 {date.strftime('%Y-%m-%d')} 기준 {price_type} 예측 가격은 얼마인가요?"
-        answer = f"{region_name}의 {date.strftime('%Y-%m-%d')} 기준 {price_type} 예측 가격은 {predicted_price}만원입니다~두껍!"
-
-        # 리스트에 추가
-        qa_pairs.append((question, answer))
+        if data.predicted_price is not None:
+            qa_pairs.append(generate_qa_pairs(data, is_prediction=True))
 
     return qa_pairs
 
-# 생성된 질문-답변 쌍을 CSV 파일로 저장
-def save_qa_to_csv(qa_pairs):
-    import pandas as pd
-    qa_df = pd.DataFrame(qa_pairs, columns=['질문', '답변'])
-    qa_df.to_csv('real_estate_qa_dataset_from_db.csv', index=False)
-    print("Dataset saved as real_estate_qa_dataset_from_db.csv")
 
-# 예시 세션 생성 및 실행
-# with Session(engine) as session:
-#     qa_pairs = generate_qa_from_db(session)
-#     save_qa_to_csv(qa_pairs)
+# CSV로 저장하는 함수 (input, bot_output 컬럼명으로 변경)
+def save_qa_to_csv(qa_pairs):
+    qa_df = pd.DataFrame(qa_pairs, columns=['input', 'bot_output'])
+    qa_df.to_csv('datasets/qa_data/real_estate_qa_dataset_from_db.csv', index=False)
+    print("Dataset saved as real_estate_qa_dataset_from_db.csv")

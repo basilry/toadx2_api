@@ -37,7 +37,7 @@ function update_db_schema() {
     alembic upgrade head
 }
 
-# kb 데이터 크롤링 및 db 데이터 업데이트
+# kb 데이터 크롤링 및 db 데이터 업데이트, 그리고 NaN 값 채우기
 function update_db_data() {
     python -m src.preprocessing.kb_data_hub.data_pipeline
 }
@@ -49,7 +49,12 @@ function predict() {
 
 # db의 csv를 기반으로 qa 데이터셋 생성
 function create_qa_dataset() {
-    python -m src.preprocessing.kor_conversation_based_db.real_estate_qa_transform.py
+    python -m src.preprocessing.kor_conversation_based_db.real_estate_qa_pipeline
+}
+
+# qa 데이터셋을 한국어 llm을 통해 보다 부드러운 형태로 변환
+function create_qa_dataset() {
+    python -m src.preprocessing.kor_conversation_based_db.real_estate_qa_pipeline
 }
 
 # 스크립트의 첫 번째 인자를 명령으로 처리

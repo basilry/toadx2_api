@@ -12,13 +12,13 @@ from src.database.database import SessionLocal
 # 기준 시점의 가격을 DB에서 가져오는 함수 (2022-01-10 기준)
 def get_basis_price(session: Session, region_code: str, price_type: str):
     """
-    기준 시점(2022-01-10)의 지역별 매매/전세 가격을 DB에서 가져오는 함수.
+    기준 시점(2022-01-10)의 지역별 sale/rent 가격을 DB에서 가져오는 함수.
     region_code: 지역 ID
-    price_type: 매매 또는 전세
+    price_type: sale 또는 rent
     """
     BASIS_DATE_WEEKLY = datetime(2022, 1, 10)  # 기준 날짜: 2022-01-10
 
-    # 기준 시점의 매매/전세 가격을 가져옴
+    # 기준 시점의 sale/rent 가격을 가져옴
     basis_data = session.query(PropertyPriceData).filter_by(
         region_code=region_code,
         price_type=price_type,
@@ -132,11 +132,11 @@ def predict_future_property_prices(session: Session, price_type: str):
 def run_prediction_pipeline():
     session = SessionLocal()
 
-    # 1. 매매 예측
-    predict_future_property_prices(session, "매매")
+    # 1. sale 예측
+    predict_future_property_prices(session, "sale")
 
-    # 2. 전세 예측
-    predict_future_property_prices(session, "전세")
+    # 2. rent 예측
+    predict_future_property_prices(session, "rent")
 
     print("All predictions have been processed.")
 
