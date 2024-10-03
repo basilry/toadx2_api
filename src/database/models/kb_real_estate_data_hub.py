@@ -52,3 +52,12 @@ class Prediction(Base):
 
     # 예측 정확도
     prediction_accuracies = Column(Float, nullable=True)  # 예측 정확도 (선택 사항)
+
+
+# 법정동 코드 테이블
+class LegalDongCode(Base):
+    __tablename__ = "legal_dong_code"
+
+    code = Column(String, primary_key=True, index=True)  # 법정동 코드
+    name = Column(String, index=True)  # 법정동 이름
+    is_active = Column(Boolean, default=True)  # 법정동 폐지 여부 (존재: True, 폐지: False)
