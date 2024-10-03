@@ -1,4 +1,4 @@
-from src.preprocessing.api_integration import process_and_insert_data_with_interpolation
+from src.preprocessing.kb_data_hub.api_integration import process_and_insert_data_with_interpolation
 from src.database.database import SessionLocal
 
 
