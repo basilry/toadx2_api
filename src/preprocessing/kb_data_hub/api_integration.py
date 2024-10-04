@@ -290,4 +290,6 @@ def process_and_insert_data_with_interpolation(session: Session):
             is_interpolated=row['is_interpolated_전세']  # 보간 여부를 반영
         )
 
+    session.commit()
+
     print("모든 데이터를 성공적으로 DB에 삽입했습니다.")
