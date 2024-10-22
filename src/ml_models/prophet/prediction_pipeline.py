@@ -1,7 +1,5 @@
 import pandas as pd
-import numpy as np
 
-np.float_ = np.float64
 from prophet import Prophet
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
@@ -96,11 +94,13 @@ def predict_future_property_prices(session: Session, price_type: str):
             continue
 
         # 2020-01-01, 2021-01-01에서 부동산 가격이 급격히 변화하는 지점을 changepoints로 설정
-        changepoints = ['2019-01-01', '2020-01-01', '2021-01-01']
+        # changepoints = ['2019-01-01', '2020-01-01', '2021-01-01']
 
         # Prophet 모델 학습
         region_data['cap'] = region_data['y'].max() * 1.5
-        model = Prophet(growth='logistic', changepoints=changepoints, changepoint_prior_scale=0.1)
+        # model = Prophet(growth='logistic', changepoints=changepoints)
+        model = Prophet(growth='logistic')
+        model.add_seasonality(name='yearly', period=365.25, fourier_order=10)
         model.fit(region_data[['ds', 'y', 'cap']])
 
         # 12개월(주단위로) 미래 예측
@@ -109,7 +109,7 @@ def predict_future_property_prices(session: Session, price_type: str):
         forecast = model.predict(future)
 
         # 예측 값을 스무딩 처리 (Moving Average 적용)
-        forecast['yhat_smooth'] = forecast['yhat'].rolling(window=3, min_periods=1).mean()
+        forecast['yhat_smooth'] = forecast['yhat'].rolling(window=7, min_periods=1).mean()
 
         # 예측 데이터를 날짜를 기준으로 정렬
         forecast = forecast.sort_values(by='ds')

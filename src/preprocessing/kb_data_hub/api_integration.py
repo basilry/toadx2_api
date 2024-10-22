@@ -273,7 +273,7 @@ def process_and_insert_data_with_interpolation(session: Session):
             session,
             region_id,
             row['날짜'],
-            '매매',
+            'sale',
             row['가격_매매'],
             row['avg_price_매매'],  # 보간된 평균 매매가
             is_interpolated=row['is_interpolated_매매']  # 보간 여부를 반영
@@ -284,7 +284,7 @@ def process_and_insert_data_with_interpolation(session: Session):
             session,
             region_id,
             row['날짜'],
-            '전세',
+            'rent',
             row['가격_전세'],
             row['avg_price_전세'],  # 보간된 평균 전세가
             is_interpolated=row['is_interpolated_전세']  # 보간 여부를 반영

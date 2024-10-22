@@ -41,37 +41,40 @@ function update_db_schema() {
 
 # kb 데이터 크롤링 및 db 데이터 업데이트, 그리고 NaN 값 채우기
 function update_db_data() {
-    python -m src.preprocessing.kb_data_hub.data_pipeline
+    python3 -m src.preprocessing.kb_data_hub.data_pipeline
 }
 
 # 데이터베이스의 kb 데이터를 기반으로 예측
 function predict() {
-    python -m src.ml_models.prophet.prediction_pipeline
+    python3 -m src.ml_models.prophet.prediction_pipeline
 }
 
 # db의 csv를 기반으로 qa 데이터셋 생성
 function create_qa_dataset() {
-    python -m src.preprocessing.kor_conversation_based_db.real_estate_qa_pipeline
+    python3 -m src.preprocessing.kor_conversation_based_db.real_estate_qa_pipeline
 }
 
 # qa 데이터셋을 한국어 llm을 통해 보다 부드러운 형태로 변환
 function create_qa_dataset() {
-    python -m src.preprocessing.kor_conversation_based_db.real_estate_qa_pipeline
+    python3 -m src.preprocessing.kor_conversation_based_db.real_estate_qa_pipeline
 }
 
 #======================================================
 
 # 국토교통부 데이터 업데이트
 function update_db_legal_dong() {
-     python -m src.preprocessing.ministry_of_land.ministry_legal_dong_pipeline
+     python3 -m src.preprocessing.ministry_of_land.ministry_legal_dong_pipeline
 }
 
 # 스크립트의 첫 번째 인자를 명령으로 처리
 case "$1" in
     run) run ;;
-    build) build ;;
-    test) test ;;
     install) install ;;
-    updatedb) updatedb ;;
-    *) echo "Usage: $0 {run|build|test|install|updatedb}" ;;
+    test) test ;;
+    update_db_schema) update_db_schema ;;
+    update_db_data) update_db_data ;;
+    predict) predict ;;
+    create_qa_dataset) create_qa_dataset ;;
+    update_db_legal_dong) update_db_legal_dong ;;
+    *) echo "Usage: $0 {run|install|test|update_db_schema|update_db_data|predict|create_qa_dataset|update_db_legal_dong}" ;;
 esac
