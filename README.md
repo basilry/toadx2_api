@@ -24,16 +24,16 @@ The predictions are made using the GEMMA2 model, fine-tuned on this specific rea
 
 ## 2. Historical Data
 
-
 ```python
 import pandas as pd
 import matplotlib.pyplot as plt
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from src.database.database import SessionLocal
-from src.database.models.kb_real_estate_data_hub import PropertyPriceData, Prediction, Region
+from src.database.models.database_model import PropertyPriceData, Prediction, Region
 
-%matplotlib inline
+%matplotlib
+inline
 ```
 
 ### Database connection

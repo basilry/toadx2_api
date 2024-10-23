@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from datetime import date
 from src.database.database import SessionLocal
-from src.database.models.kb_real_estate_data_hub import PropertyPriceData
+from src.database.models.database_model import PropertyPriceData
 
 
 # 영문 price_type을 한글로 변환하는 함수

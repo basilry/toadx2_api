@@ -1,7 +1,7 @@
 from prophet import Prophet
 import pandas as pd
 from sqlalchemy.orm import Session
-from src.database.models.kb_real_estate_data_hub import Prediction
+from src.database.models.database_model import Prediction
 
 
 # 데이터 처리 및 예측 함수

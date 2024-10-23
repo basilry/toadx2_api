@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, Boolean, Index
+from datetime import datetime
+
+from sqlalchemy import Column, Integer, String, Float, Date, DateTime, ForeignKey, Boolean, Index, Text
 from sqlalchemy.orm import relationship
 from src.database.database import Base
 
@@ -61,3 +63,32 @@ class LegalDongCode(Base):
     code = Column(String, primary_key=True, index=True)  # 법정동 코드
     name = Column(String, index=True)  # 법정동 이름
     is_active = Column(Boolean, default=True)  # 법정동 폐지 여부 (존재: True, 폐지: False)
+
+
+# 카테고리 테이블
+class NewsCategory(Base):
+    __tablename__ = "news_categories"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), unique=True, nullable=False)
+
+    # 관계 설정: 카테고리 하나가 여러 기사를 가질 수 있음
+    articles = relationship("NewsArticle", back_populates="category")
+
+
+# 뉴스 기사 테이블
+class NewsArticle(Base):
+    __tablename__ = "news_articles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False)
+    url = Column(String, unique=True, nullable=False)  # 뉴스 기사 URL
+    content = Column(Text, nullable=False)  # 뉴스 본문
+    summary = Column(Text, nullable=True)  # 기사 요약 정보 (summaryContent)
+    thumbnail = Column(String, nullable=True)  # 썸네일 URL
+    reg_date = Column(Date, nullable=True)  # 발행일 정보 (publishDateTime)
+    published_date = Column(Date, nullable=True)
+    category_id = Column(Integer, ForeignKey("news_categories.id"))  # 카테고리 외래키
+
+    # 카테고리와의 관계 설정
+    category = relationship("NewsCategory", back_populates="articles")

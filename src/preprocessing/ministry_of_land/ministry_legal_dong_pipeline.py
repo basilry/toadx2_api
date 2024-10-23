@@ -1,7 +1,7 @@
 import pandas as pd
 from sqlalchemy.orm import Session
 from src.database.database import engine
-from src.database.models.kb_real_estate_data_hub import LegalDongCode
+from src.database.models.database_model import LegalDongCode
 
 # 파일 경로
 file_path = 'datasets/ministry_of_land/legal_dong_list.txt'

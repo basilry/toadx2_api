@@ -3,7 +3,7 @@ import pandas as pd
 from prophet import Prophet
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
-from src.database.models.kb_real_estate_data_hub import PropertyPriceData, Prediction
+from src.database.models.database_model import PropertyPriceData, Prediction
 from src.database.database import SessionLocal
 
 

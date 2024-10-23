@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from src.database.models.kb_real_estate_data_hub import PropertyPriceData, Prediction, Region
+from src.database.models.database_model import PropertyPriceData, Prediction, Region
 import pandas as pd
 
 

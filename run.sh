@@ -66,15 +66,91 @@ function update_db_legal_dong() {
      python3 -m src.preprocessing.ministry_of_land.ministry_legal_dong_pipeline
 }
 
-# 스크립트의 첫 번째 인자를 명령으로 처리
-case "$1" in
-    run) run ;;
-    install) install ;;
-    test) test ;;
-    update_db_schema) update_db_schema ;;
-    update_db_data) update_db_data ;;
-    predict) predict ;;
-    create_qa_dataset) create_qa_dataset ;;
-    update_db_legal_dong) update_db_legal_dong ;;
-    *) echo "Usage: $0 {run|install|test|update_db_schema|update_db_data|predict|create_qa_dataset|update_db_legal_dong}" ;;
-esac
+# 네이버 부동산 뉴스 크롤링
+function crawl_naver_news() {
+    python3 -m src.preprocessing.naver_real_estate_news.crawler
+}
+
+# 크롤링한 데이터 전처리
+function preprocess_crawled_data() {
+    python3 -m src.preprocessing.naver_real_estate_news.data_preprocessing
+}
+
+
+# 메뉴 출력 및 선택
+function main_menu() {
+    echo "1) 프로젝트 관리"
+    echo "2) KB 데이터 관련"
+    echo "3) 크롤링 관련"
+    echo "4) 종료"
+    read -p "번호를 선택하세요: " choice
+
+    case $choice in
+        1)
+            project_menu
+            ;;
+        2)
+            kb_data_menu
+            ;;
+        3)
+            crawl_menu
+            ;;
+        4)
+            stop
+            ;;
+        *)
+            echo "잘못된 선택입니다."
+            main_menu
+            ;;
+    esac
+}
+
+# 프로젝트 관리 메뉴
+function project_menu() {
+    echo "1) 서버 실행"
+    echo "2) 의존성 설치"
+    echo "3) 데이터베이스 스키마 업데이트"
+    echo "4) 테스트 실행"
+    read -p "번호를 선택하세요: " choice
+
+    case $choice in
+        1) run ;;
+        2) install ;;
+        3) update_db_schema ;;
+        4) test ;;
+        *) echo "잘못된 선택입니다."; project_menu ;;
+    esac
+}
+
+# KB 데이터 관련 메뉴
+function kb_data_menu() {
+    echo "1) KB 데이터 업데이트"
+    echo "2) KB 데이터 예측"
+    echo "3) QA 데이터셋 생성"
+    read -p "번호를 선택하세요: " choice
+
+    case $choice in
+        1) update_db_data ;;
+        2) predict ;;
+        3) create_qa_dataset ;;
+        *) echo "잘못된 선택입니다."; kb_data_menu ;;
+    esac
+}
+
+# 크롤링 관련 메뉴
+function crawl_menu() {
+    echo "1) 네이버 부동산 뉴스 크롤링"
+    echo "2) 국토교통부 데이터 업데이트"
+    echo "3) 크롤링한 데이터 전처리"
+    read -p "번호를 선택하세요: " choice
+
+    case $choice in
+        1) crawl_naver_news ;;
+        2) update_db_legal_dong ;;
+        3) preprocess_crawled_data ;;
+        *) echo "잘못된 선택입니다."; crawl_menu ;;
+    esac
+}
+
+# 스크립트 시작
+main_menu

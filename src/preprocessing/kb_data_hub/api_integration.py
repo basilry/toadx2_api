@@ -2,7 +2,7 @@ import warnings
 import pandas as pd
 from datetime import datetime
 from sqlalchemy.orm import Session
-from src.database.models.kb_real_estate_data_hub import PropertyPriceData, Region
+from src.database.models.database_model import PropertyPriceData, Region
 from src.crawling.kb_real_estate_api import (
     get_weekly_apartment_sale_cost_index,
     get_weekly_apartment_rent_cost_index,
