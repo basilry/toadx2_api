@@ -59,6 +59,16 @@ function create_qa_dataset() {
     python3 -m src.preprocessing.kor_conversation_based_db.real_estate_qa_pipeline
 }
 
+# 자연어 파싱 하는 qna 데이터셋 생성
+function nlp_parsing_qna_dataset() {
+    python3 -m src.preprocessing.kb_data_hub.qna_dataset_maker
+}
+
+# 자연어 파싱 qna 데이터셋 검수
+function nlp_parsing_qna_dataset_validate() {
+    python3 -m src.preprocessing.kb_data_hub.qna_dataset_validator
+}
+
 #======================================================
 
 # 국토교통부 데이터 업데이트
@@ -75,6 +85,9 @@ function crawl_naver_news() {
 function preprocess_crawled_data() {
     python3 -m src.preprocessing.naver_real_estate_news.data_preprocessing
 }
+
+#=======================================================
+
 
 
 # 메뉴 출력 및 선택
@@ -127,12 +140,16 @@ function kb_data_menu() {
     echo "1) KB 데이터 업데이트"
     echo "2) KB 데이터 예측"
     echo "3) QA 데이터셋 생성"
+    echo "4) NLP 파싱 QA 데이터셋 생성"
+    echo "5) NLP 파싱 QA 데이터셋 검수"
     read -p "번호를 선택하세요: " choice
 
     case $choice in
         1) update_db_data ;;
         2) predict ;;
         3) create_qa_dataset ;;
+        4) nlp_parsing_qna_dataset ;;
+        5) nlp_parsing_qna_dataset_validate ;;
         *) echo "잘못된 선택입니다."; kb_data_menu ;;
     esac
 }

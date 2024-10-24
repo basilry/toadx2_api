@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from sqlalchemy import Column, Integer, String, Float, Date, DateTime, ForeignKey, Boolean, Index, Text
 from sqlalchemy.orm import relationship
 from src.database.database import Base
