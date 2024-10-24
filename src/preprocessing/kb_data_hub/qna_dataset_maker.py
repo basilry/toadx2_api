@@ -66,8 +66,7 @@ def generate_real_estate_queries():
     current_date = datetime.now().date()
 
     # 결과 저장할 리스트
-    final_documents = []
-    final_labels = []
+    final_data = []
 
     # 데이터베이스 세션 사용
     with next(get_db()) as db:  # get_db() 함수로부터 세션 가져오기
@@ -99,37 +98,22 @@ def generate_real_estate_queries():
                 # 무작위 선택
                 template = random.choice(templates[price_type])  # 가격 타입에 맞는 템플릿 선택
 
-                # 문장 생성
-                sentence = template.format(date=natural_date, region=region_name, time_reference=natural_reference)
-
                 # 결과 추가
-                final_documents.append(sentence)
+                input_sentence = template.format(date=natural_date, region=region_name, time_reference=natural_reference)
+                output_sentence = f"파싱 결과:\n지역: {region_name}\n매매/전세 여부: {price_type}\n시간 정보: {natural_date}"
 
-                # 레이블 생성 - 자연어 표현에 따른 실제 날짜 값으로 설정
-                if natural_reference in ["옛날", "과거"]:
-                    time_info = (current_date - timedelta(days=365)).strftime("%Y-%m-%d")  # 1년 전 날짜
-                elif natural_reference in ["지금", "요즘", "요새"]:
-                    time_info = current_date.strftime("%Y-%m-%d")  # 현재 날짜
-                elif natural_reference in ["나중에", "미래에", "언젠가"]:
-                    time_info = (current_date + timedelta(days=365)).strftime("%Y-%m-%d")  # 1년 후 날짜
-                else:
-                    time_info = date.strftime("%Y-%m-%d")  # 실제 데이터 날짜 사용
-
-                label = {
-                    "지역": region_name,
-                    "매매/전세 여부": price_type,
-                    "시간 정보": time_info  # 실제 날짜 값 할당
-                }
-                final_labels.append(label)
+                final_data.append({
+                    "inputs": input_sentence,
+                    "outputs": output_sentence
+                })
 
     # 최종 JSON 구조 생성
     final_json = {
-        "documents": final_documents,
-        "labels": final_labels
+        "data": final_data
     }
 
     # JSON 파일로 저장
-    json_file_path = 'datasets/qna_dataset/nlp_parsing_qna_dataset.json'
+    json_file_path = 'datasets/qna_dataset/nlp_parsing_qna_dataset_ver0.2.json'
     with open(json_file_path, 'w', encoding='utf-8') as json_file:
         json.dump(final_json, json_file, ensure_ascii=False, indent=4)
 
