@@ -28,6 +28,7 @@ memory = ConversationBufferMemory()
 
 # 캐시 설정 (사용자 세션을 위한 캐시)
 cache = {}
+res_type = "text"
 
 MODEL_NAME = 'gemini-1.5-flash'
 
@@ -35,6 +36,15 @@ genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 gemini_model = genai.GenerativeModel(MODEL_NAME)
 
 llm = ChatGoogleGenerativeAI(model=MODEL_NAME)
+reqeust_prompt_template = ChatPromptTemplate.from_messages([
+    SystemMessagePromptTemplate.from_template(
+        "유저의 질문이 부동산 매매가, 전세가 등 '정형적 가격'에 대한 질문이면 'PRICE'를 대답해줘"
+        "유저의 질문이 부동산 정보, 뉴스, 전망 등 '비정형적 내용'에 대한 질문이면 'INFO'로 대답해줘"
+    ),
+    HumanMessagePromptTemplate.from_template(
+        "유저의 질문: {input_text}"
+    )
+    ])
 parsing_prompt_template = ChatPromptTemplate.from_messages([
     SystemMessagePromptTemplate.from_template(
         "모든 응답은 반드시 한국어로 작성되어야 합니다. 다음 유저의 질문을 파싱하여 지침에 따라 답변하세요."
@@ -77,6 +87,7 @@ def get_initial_response(session_id):
 
 # 2. Gemini API로 질문 유형 확인하는 함수
 def gemini_api_confirm_question_kind(text: str):
+    global res_type
     response = gemini_model.generate_content(f"부동산 관련 질문이면 Y로 대답해주고, 아니면 무조건 N으로 대답해줘: {text}")
     print("질문 유형 확인 결과", response.text.strip())
     question_kind = response.text.strip()
@@ -84,12 +95,14 @@ def gemini_api_confirm_question_kind(text: str):
     if question_kind == "N":
         return "N"
 
-    followup_response = gemini_model.generate_content(f"이 질문이 부동산 매매가/전세가에 대한 질문이면 'PRICE', "
-                                                      f"부동산 정보/뉴스에 대한 질문이면 'INFO'로 대답해줘: {text}")
+    request_analysis_chain = LLMChain(
+        llm=llm,
+        prompt=reqeust_prompt_template,
+    )
+    followup_kind = request_analysis_chain.invoke({"input_text": text})
+    res_type = "text"
 
-    followup_kind = followup_response.text.strip()
-
-    return followup_kind
+    return followup_kind['text'].strip()
 
 
 # 파싱된 결과에 기본값을 추가하는 함수 수정
@@ -221,7 +234,20 @@ def get_news_articles(region_name: str, db: Session):
         .where(NewsArticle.published_date > one_month_ago)  # 최근 1달 내 데이터
         .limit(4)  # 최대 4개의 뉴스 기사 조회
     )
-    result = db.execute(query).fetchall()
+    query_result = db.execute(query).fetchall()
+
+    result = []
+    for record in query_result:
+        # 첫 번째 요소만 가져오기 (예: (<PropertyPriceData 객체>,))
+        data = record[0]
+        print(f"ID: {data.id}, Title: {data.title}, Content: {data.content}, "
+                f"Published Date: {data.published_date}")
+        result.append({
+            "title": data.title,
+            "content": data.content,
+            "published_date": data.published_date.strftime('%Y-%m-%d')
+        })
+
     if not result:
         return None
     return result
@@ -236,6 +262,7 @@ def clean_parsing_result(parsed_text: str):
 
 # 8. 수정된 부동산 질문 핸들러
 def handle_real_estate_question(user_input, session_id, db: Session):
+    global res_type
     # 질문 유형 확인
     kind = gemini_api_confirm_question_kind(user_input)
     print("부동산 관련 질문 여부 확인", kind)
@@ -278,6 +305,7 @@ def handle_real_estate_question(user_input, session_id, db: Session):
             return "데이터를 찾을 수 없습니다~두껍!"
 
         print(price_data)
+        res_type = "price"
 
         return price_data
 
@@ -291,20 +319,17 @@ def handle_real_estate_question(user_input, session_id, db: Session):
             # 구글 검색으로 대체
             search_results = google_search(user_input)
             if search_results:
+                res_type = "news"
+
                 return {
                     "region": region_name,
                     "news": search_results
                 }
             return "관련 뉴스 및 정보를 찾을 수 없습니다.~두껍!"
 
-        result = {
-            "region": region_name,
-            "news": news_data
-        }
+        res_type = "info"
 
-        print(result)
-
-        return result
+        return news_data
 
     # 부동산 관련이 아니면 고정된 프롬프트로 reject
     return "부동산 관련 질문만 대답할 수 있습니다!~두껍!"
@@ -332,5 +357,11 @@ async def chat(request: Request, db: Session = Depends(get_db)):
 
     print("최종 응답값", response)
 
+    response_chain = LLMChain(
+        llm=llm,
+        prompt=response_prompt_template,
+    )
+    final_response = response_chain.invoke({"input_text": response})
+
     # 최종 응답 반환
-    return {"response": response, "session_id": session_id}
+    return {"type": res_type, "model_response": final_response, "response": response, "session_id": session_id}
