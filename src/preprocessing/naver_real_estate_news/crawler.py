@@ -96,6 +96,6 @@ def start_crawling(db: Session, start_date: str, total_days: int = 90, size: int
 if __name__ == "__main__":
     db = next(get_db())  # DB 세션 가져오기
     # base_date = datetime.today().strftime('%Y-%m-%d')  # 크롤링 시작할 기준 날짜
-    base_date = '2024-05-09'
-    total_days = 60  # 3개월 간의 데이터를 수집
+    base_date = '2024-03-12'
+    total_days = 120  # 3개월 간의 데이터를 수집
     start_crawling(db, base_date, total_days)

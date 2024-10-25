@@ -1,5 +1,5 @@
 import random
-import json
+import pandas as pd  # pandas 라이브러리 임포트
 from datetime import datetime, timedelta
 from sqlalchemy import select
 from src.database.models.database_model import Prediction, Region, PropertyPriceData
@@ -83,7 +83,7 @@ def generate_real_estate_queries():
         regions = db.execute(region_query).all()
 
         # 문장 생성
-        for row in price_data + prediction_data:  # 가격 데이터와 예측 데이터를 합쳐서 처리
+        for idx, row in enumerate(price_data + prediction_data):  # 가격 데이터와 예측 데이터를 합쳐서 처리
             date = row[0]  # 실제 날짜 (datetime.date 객체)
             region_code = row[1]  # 지역 코드
             price_type = row[2]  # 가격 타입
@@ -99,27 +99,25 @@ def generate_real_estate_queries():
                 template = random.choice(templates[price_type])  # 가격 타입에 맞는 템플릿 선택
 
                 # 결과 추가
-                input_sentence = template.format(date=natural_date, region=region_name, time_reference=natural_reference)
+                input_sentence = "다음 유저의 질문을 파싱하시오:" + template.format(date=natural_date, region=region_name, time_reference=natural_reference)
                 output_sentence = f"파싱 결과:\n지역: {region_name}\n매매/전세 여부: {price_type}\n시간 정보: {natural_date}"
 
                 final_data.append({
-                    "inputs": input_sentence,
-                    "outputs": output_sentence
+                    "id": idx,  # idx를 id로 저장
+                    "input": input_sentence,
+                    "output": output_sentence
                 })
 
-    # 최종 JSON 구조 생성
-    final_json = {
-        "data": final_data
-    }
+    # 데이터를 DataFrame으로 변환
+    df = pd.DataFrame(final_data)
 
-    # JSON 파일로 저장
-    json_file_path = 'datasets/qna_dataset/nlp_parsing_qna_dataset_ver0.2.json'
-    with open(json_file_path, 'w', encoding='utf-8') as json_file:
-        json.dump(final_json, json_file, ensure_ascii=False, indent=4)
+    # CSV 파일로 저장
+    csv_file_path = 'datasets/qna_dataset/nlp_parsing_qna_dataset_ver0.5.csv'
+    df.to_csv(csv_file_path, index=False, encoding='utf-8-sig')
 
-    return json_file_path
+    return csv_file_path
 
 
 if __name__ == "__main__":
-    json_file_path = generate_real_estate_queries()
-    print(f"Generated queries saved to {json_file_path}")
+    csv_file_path = generate_real_estate_queries()
+    print(f"Generated queries saved to {csv_file_path}")
