@@ -5,7 +5,8 @@ from datetime import datetime, timedelta
 import requests
 from fastapi import APIRouter, Request, Depends
 from dotenv import load_dotenv
-from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, AIMessagePromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, \
+    AIMessagePromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
 from sqlalchemy.orm import Session
 from src.database.database import get_db
@@ -44,7 +45,7 @@ reqeust_prompt_template = ChatPromptTemplate.from_messages([
     HumanMessagePromptTemplate.from_template(
         "유저의 질문: {input_text}"
     )
-    ])
+])
 parsing_prompt_template = ChatPromptTemplate.from_messages([
     SystemMessagePromptTemplate.from_template(
         "모든 응답은 반드시 한국어로 작성되어야 합니다. 다음 유저의 질문을 파싱하여 지침에 따라 답변하세요."
@@ -60,23 +61,54 @@ parsing_prompt_template = ChatPromptTemplate.from_messages([
     )
 ])
 response_prompt_template = ChatPromptTemplate.from_messages([
-        SystemMessagePromptTemplate.from_template(
-            "이 서비스는 영문으로는 'toadx2'이고, 한글로는 '두껍아두껍아'입니다. "
-            "이 서비스는 KB 부동산 데이터 허브의 API를 기반으로 한국의 아파트 매매가와 전세가 기록치와 "
-            "그 기록치를 바탕으로 Prophet 모델을 통해 예측치를 구성해서 데이터베이스에 보유하고 있습니다. "
-            "이 서비스는 위의 데이터베이스에 저장된 부동산 데이터를 기반으로 답변할 수 있습니다. "
-            "이 서비스는 한국어를 할 수 있습니다. "
-            "이 서비스는 Google's Gemma-2-2b-it 모델을 기반으로 하고 있습니다. "
-            "이 서비스는 부동산 중에서도 아파트와 관련된 매매가 혹은 전세가가 아니면 답변할 수 없습니다. "
-            "이 서비스는 도덕적 윤리를 지켜야 합니다. "
-            "유저가 한국어로 말할 때는 항상 말 끝마다 '~두껍!'이라고 붙여야 하며, "
-            "유저가 영어로 말할 때는 항상 말 끝마다 '~ribbit!'이라고 붙여야 합니다."
-            "유저가 인사를 하면 자기 소개를 해야 합니다."
-        ),
-        HumanMessagePromptTemplate.from_template(
-            "유저의 질문: {input_text}"
-        ),
-    ])
+    SystemMessagePromptTemplate.from_template(
+        "이 서비스는 영문으로는 'toadx2'이고, 한글로는 '두껍아두껍아'입니다. "
+        "이 서비스는 KB 부동산 데이터 허브의 API를 기반으로 한국의 아파트 매매가와 전세가 기록치와 "
+        "그 기록치를 바탕으로 Prophet 모델을 통해 예측치를 구성해서 데이터베이스에 보유하고 있습니다. "
+        "이 서비스는 위의 데이터베이스에 저장된 부동산 데이터를 기반으로 답변할 수 있습니다. "
+        "이 서비스는 한국어를 할 수 있습니다. "
+        "이 서비스는 Google's Gemma-2-2b-it 모델을 기반으로 하고 있습니다. "
+        "이 서비스는 부동산 중에서도 아파트와 관련된 매매가 혹은 전세가가 아니면 답변할 수 없습니다. "
+        "이 서비스는 도덕적 윤리를 지켜야 합니다. "
+        "유저가 한국어로 말할 때는 항상 말 끝마다 한 칸 띄어 쓰고 '~두껍!'이라고 붙여야 하며, "
+        "유저가 영어로 말할 때는 항상 말 끝마다 '~ribbit!'이라고 붙여야 합니다."
+        "유저가 인사를 하면 자기 소개를 해야 합니다."
+    ),
+    HumanMessagePromptTemplate.from_template(
+        "유저의 질문: {input_text}"
+    ),
+])
+
+final_prompt_template = ChatPromptTemplate.from_messages([
+    SystemMessagePromptTemplate.from_template(
+        "이 서비스는 영문으로는 'toadx2'이고, 한글로는 '두껍아두껍아'입니다. "
+        "이 서비스는 KB 부동산 데이터 허브의 API를 기반으로 한국의 아파트 매매가와 전세가 기록치와 "
+        "그 기록치를 바탕으로 Prophet 모델을 통해 예측치를 구성해서 데이터베이스에 보유하고 있습니다. "
+        "이 서비스는 위의 데이터베이스에 저장된 부동산 데이터를 기반으로 답변할 수 있습니다. "
+        "이 서비스는 한국어를 할 수 있습니다. "
+        "이 서비스는 Google's Gemma-2-2b-it 모델을 기반으로 하고 있습니다. "
+        "이 서비스는 부동산 중에서도 아파트와 관련된 매매가 혹은 전세가가 아니면 답변할 수 없습니다. "
+        "이 서비스는 도덕적 윤리를 지켜야 합니다. "
+        "유저가 한국어로 말할 때는 항상 말 끝마다 한 칸 띄어 쓰고 '~두껍!'이라고 붙여야 하며, "
+        "유저가 영어로 말할 때는 항상 말 끝마다 '~ribbit!'이라고 붙여야 합니다. "
+        "모든 문장은 자연스러운 띄어쓰기를 적용하고, 가독성을 높이는 방식으로 작성해야 합니다."
+    ),
+    HumanMessagePromptTemplate.from_template(
+        "유저의 질문: {input_text}\n"
+        "다음 데이터를 분석하여 한국어로 답변하세요:\n"
+        "지역: {region}\n"
+        "가격 데이터:\n"
+        "{price_data}\n"
+    ),
+    AIMessagePromptTemplate.from_template(
+        "지역 {region}에 대한 분석 결과입니다~두껍!\n"
+        "데이터에 따르면, 해당 지역의 최근 부동산 가격 추이는 다음과 같습니다:\n"
+        "{formatted_price_data}\n\n"
+        "이 데이터를 기반으로 한 유의미한 통찰:\n"
+        "{analysis_summary}~두껍!"
+    )
+])
+
 
 # 1. 초기 응답 반환 함수
 def get_initial_response(session_id):
@@ -163,7 +195,7 @@ def get_property_price(region_name: str, price_type: str, date_info: str, db: Se
 
     # date_info가 '현재'이면 최근 1달 내 데이터를 조회
     if date_info == "" or date_info == "현재":
-        start_date = current_date - timedelta(days=30)
+        start_date = current_date - timedelta(days=90)
         end_date = current_date
         table = PropertyPriceData  # 현재 시점 데이터는 PropertyPriceData에서 조회
     else:
@@ -177,9 +209,11 @@ def get_property_price(region_name: str, price_type: str, date_info: str, db: Se
             table = Prediction  # 미래 시점 데이터는 Prediction 테이블에서 조회
         else:
             # 과거 또는 현재 데이터는 PropertyPriceData에서 조회
-            start_date = parsed_date - timedelta(days=30)
+            start_date = parsed_date - timedelta(days=90)
             end_date = parsed_date
             table = PropertyPriceData  # 과거 시점 데이터는 PropertyPriceData에서 조회
+
+    print("날짜 정보", start_date, end_date)
 
     # 공백을 기준으로 단어 분리
     keywords = [word.replace("시", "").replace("구", "").replace("도", "") for word in region_name.split()]
@@ -195,9 +229,9 @@ def get_property_price(region_name: str, price_type: str, date_info: str, db: Se
         .join(Region, table.region_code == Region.region_code)
         .where(or_(*like_conditions))
         .where(table.price_type == price_type)
-        .where(func.to_char(table.date, 'YYYY-MM-DD') >= start_date.strftime('%Y-%m-%d'))  # 시작 날짜
-        .where(func.to_char(table.date, 'YYYY-MM-DD') <= end_date.strftime('%Y-%m-%d'))
-        .limit(4)  # 최대 4개 데이터 조회
+        .where(table.date >= start_date)  # 시작 날짜
+        .where(table.date <= end_date)
+        .limit(10)  # 최대 4개 데이터 조회
     )
 
     query_result = db.execute(query).fetchall()
@@ -242,7 +276,7 @@ def get_news_articles(region_name: str, db: Session):
         # 첫 번째 요소만 가져오기 (예: (<PropertyPriceData 객체>,))
         data = record[0]
         print(f"ID: {data.id}, Title: {data.title}, Content: {data.content}, "
-                f"Published Date: {data.published_date}")
+              f"Published Date: {data.published_date}")
         result.append({
             "title": data.title,
             "content": data.content,
@@ -309,7 +343,7 @@ def handle_real_estate_question(user_input, session_id, db: Session):
         print(price_data)
         res_type = "price"
 
-        return price_data
+        return [region, price_data]
 
     # 질문이 정보/뉴스 관련일 경우
     elif kind == "INFO":
@@ -361,7 +395,7 @@ async def chat(request: Request, db: Session = Depends(get_db)):
 
     response_chain = LLMChain(
         llm=llm,
-        prompt=response_prompt_template,
+        prompt=final_prompt_template,
     )
     final_response = response_chain.invoke({"input_text": response})
 
