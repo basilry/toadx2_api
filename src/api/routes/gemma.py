@@ -188,6 +188,7 @@ def get_property_price(region_name: str, price_type: str, date_info: str, db: Se
     # 각 키워드를 %감싸서 LIKE 조건을 생성
     like_conditions = [Region.region_name_kor.like(f"%{keyword}%") for keyword in keywords]
 
+    # region_name_kor 컬럼 조인해서 조회 필요
     # DB에서 매매가/전세가 데이터를 조회
     query = (
         select(table)
@@ -245,6 +246,7 @@ def get_news_articles(region_name: str, db: Session):
         result.append({
             "title": data.title,
             "content": data.content,
+            "url": data.url,
             "published_date": data.published_date.strftime('%Y-%m-%d')
         })
 
@@ -349,7 +351,7 @@ async def chat(request: Request, db: Session = Depends(get_db)):
         initial_response = get_initial_response(session_id)
         print("최초응답", initial_response)
 
-        return {"response": initial_response, "session_id": session_id}
+        return {"type": "text", "response": initial_response, "session_id": session_id}
 
     print("부동산 질문 처리 함수 호출")
     # 부동산 질문 처리 함수 호출
@@ -364,4 +366,4 @@ async def chat(request: Request, db: Session = Depends(get_db)):
     final_response = response_chain.invoke({"input_text": response})
 
     # 최종 응답 반환
-    return {"type": res_type, "model_response": final_response, "response": response, "session_id": session_id}
+    return {"type": res_type, "model_response": final_response['text'], "response": response, "session_id": session_id}
