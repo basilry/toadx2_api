@@ -296,6 +296,29 @@ def clean_parsing_result(parsed_text: str):
     return cleaned_text
 
 
+# 데이터 포맷팅 함수
+def format_price_data(region_name, price_data):
+    """
+    부동산 가격 데이터를 포맷하는 함수.
+    """
+    formatted_price_data = []
+    for item in price_data:
+        formatted_price_data.append(
+            f"- 날짜: {item['date']}, 거래 유형: {item['deal_type']}, 평균 가격: {item['price'] * 10000:,}원"
+        )
+    return "\n".join(formatted_price_data)
+
+
+# 분석 요약 생성 함수
+def generate_analysis_summary(price_data):
+    """
+    가격 데이터를 분석하고 요약 생성.
+    """
+    avg_price = sum(item['price'] for item in price_data) / len(price_data)
+    trend = "상승" if price_data[-1]['price'] > price_data[0]['price'] else "하락"
+    return f"최근 평균 가격은 {avg_price * 10000:,.0f}원이며, 가격 추이는 {trend}세입니다."
+
+
 # 8. 수정된 부동산 질문 핸들러
 def handle_real_estate_question(user_input, session_id, db: Session):
     global res_type
@@ -340,10 +363,19 @@ def handle_real_estate_question(user_input, session_id, db: Session):
         if not price_data:
             return "데이터를 찾을 수 없습니다~두껍!"
 
+        # 데이터 포맷팅 및 요약 생성
+        formatted_price_data = format_price_data(region, price_data)
+        analysis_summary = generate_analysis_summary(price_data)
+
         print(price_data)
         res_type = "price"
 
-        return [region, price_data]
+        return {
+            "region": region,
+            "formatted_price_data": formatted_price_data,
+            "analysis_summary": analysis_summary
+        }
+
 
     # 질문이 정보/뉴스 관련일 경우
     elif kind == "INFO":
@@ -393,11 +425,27 @@ async def chat(request: Request, db: Session = Depends(get_db)):
 
     print("최종 응답값", response)
 
-    response_chain = LLMChain(
-        llm=llm,
-        prompt=final_prompt_template,
-    )
-    final_response = response_chain.invoke({"input_text": response})
+    if isinstance(response, dict) and res_type == "price":
+        # Gemma API 호출을 위한 데이터 구성
+        response_chain = LLMChain(
+            llm=llm,
+            prompt=final_prompt_template,
+        )
+        final_response = response_chain.invoke({
+            "input_text": user_input,
+            "region": response["region"],
+            "price_data": response["formatted_price_data"],
+            "formatted_price_data": response["formatted_price_data"],
+            "analysis_summary": response["analysis_summary"]
+        })
 
-    # 최종 응답 반환
-    return {"type": res_type, "model_response": final_response['text'], "response": response, "session_id": session_id}
+        # 최종 응답 반환
+        return {
+            "type": res_type,
+            "model_response": final_response["text"],
+            "response": response,
+            "session_id": session_id
+        }
+
+    # 뉴스 혹은 일반 정보 처리
+    return {"type": res_type, "response": response, "session_id": session_id}
