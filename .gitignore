@@ -2,5 +2,26 @@
 *.env.*
 .idea
 */__pycache__/*
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE 설정
+.vscode/
+.idea/
+.cursor/
+.atom/
+.vs/
+
+# 바이트 코드와 캐시 파일
+__pycache__/
+*/__pycache__/
+*/*/__pycache__/
+*/*/*/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
 
 src/ml_models/gemma2-2-2b-it-fine-tuned-korean-model/*

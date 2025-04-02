@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.routes import real_estate, healthcheck, gemma
+from src.api.routes import real_estate, healthcheck, openai_api
 from src.database.database import Base, engine
 
 app = FastAPI()
@@ -35,4 +35,4 @@ async def root():
 
 app.include_router(real_estate.router, prefix="/real-estate")
 app.include_router(healthcheck.router, prefix="/health-check")
-app.include_router(gemma.router, prefix="/gemma2")
+app.include_router(openai_api.router, prefix="/model")
