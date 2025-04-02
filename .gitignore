@@ -1,5 +1,6 @@
 .env
 *.env.*
 .idea
+*/__pycache__/*
 
 src/ml_models/gemma2-2-2b-it-fine-tuned-korean-model/*
