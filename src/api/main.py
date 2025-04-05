@@ -1,8 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import logging
 
-from src.api.routes import real_estate, healthcheck, openai_api
+from src.api.routes import real_estate, healthcheck, assistant_api, openai_api
 from src.database.database import Base, engine
+
+# 로깅 레벨 설정
+logging.basicConfig(level=logging.INFO)
+# 외부 라이브러리 로깅 레벨 조정
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+logging.getLogger("openai").setLevel(logging.DEBUG)
+logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
 
 app = FastAPI()
 
@@ -36,3 +45,4 @@ async def root():
 app.include_router(real_estate.router, prefix="/real-estate")
 app.include_router(healthcheck.router, prefix="/health-check")
 app.include_router(openai_api.router, prefix="/model")
+app.include_router(assistant_api.router, prefix="/assistant")
